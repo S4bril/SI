@@ -2,6 +2,8 @@ import string
 from queue import PriorityQueue
 from queue import Queue
 
+import time
+
 class InvalidDirectionException(Exception):
     def __init__(self, function_name, direction):
         print(function_name + ": " + direction + " is not a valid direction")
@@ -52,18 +54,13 @@ def bfs(board, start_node, goals):
                 q.put((next_pos, next_path))
                 visited_states.add(my_hash)
     return None
+
 def compute_distances(board, goals):
-    # def distance(p1, p2):
-    #     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
-    # for i in range(HEIGHT):
-    #     for j in range(WIDTH):
-    #         if board[i][j] != '#':
-    #             dist[(i, j)] = min([distance((i, j), goal) for goal in goals])
+
     for i in range(HEIGHT):
         for j in range(WIDTH):
             if board[i][j] != '#':
                 dist[(i, j)] = bfs(board, ((i, j), 0), goals)
-    #print(dist)
 
 def check_mission(commanders, goals):
     for commander in commanders:
@@ -131,4 +128,8 @@ def main():
     #print(len(res), res)
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Execution time:", execution_time, "seconds")

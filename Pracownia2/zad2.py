@@ -75,14 +75,14 @@ def bfs(start_node, goals):
     return None
 
 def preprocessing(state):
-    #print(state)
     i = 0
     new_state = (state[0], state[1])
-    while len(new_state[0]) > 2 and i < 4:
+    lol = 6
+    while len(new_state[0]) > 2 and i < lol:
         new_state = preprocessed_moves(new_state)
         i += 1
 
-    if i == 4:
+    if i == lol:
         preprocessing(state)
 
     return new_state
@@ -108,7 +108,7 @@ def preprocessed_moves(state):
         new_commanders = len(state[0])
         moves = state[1]
         if (new_commanders == min_commanders and len(moves) < len(min_state[1])) or new_commanders < min_commanders:
-            if len(moves) < 100:
+            if len(moves) < 120:
                 min_state = (state[0], moves)
                 min_commanders = new_commanders
         state = origin_state
@@ -122,6 +122,7 @@ def main():
     res = bfs(start_node, goals)
     with open("zad_output.txt", "w") as f:
         f.write(res)
+    print(len(res))
 
 if __name__ == "__main__":
     main()

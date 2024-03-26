@@ -1,6 +1,7 @@
 import string
 from queue import PriorityQueue
 from queue import Queue
+import time
 
 class InvalidDirectionException(Exception):
     def __init__(self, function_name, direction):
@@ -125,10 +126,14 @@ def main():
     positions = get_commanders_positions(board)
     goals = get_goals_positions(board)
     compute_distances(board, goals)
-    res = A_star(board, (positions, ""), goals, 1.0)
+    res = A_star(board, (positions, ""), goals, 1.3)
     print(len(res))
     with open("zad_output.txt", "w") as f:
         f.write(res)
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Execution time:", execution_time, "seconds")

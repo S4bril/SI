@@ -1,9 +1,8 @@
+import random
 import string
 from itertools import product
 from queue import PriorityQueue
 from queue import Queue
-import random
-
 
 class InvalidDirectionException(Exception):
     def __init__(self, function_name, direction):
@@ -38,47 +37,6 @@ def get_goals_positions(board):
             if board[i][j] == 'G' or board[i][j] == 'B':
                 res.append((i, j))
     return res
-
-def preprocessing(board, state):
-    #print(state)
-    i = 0
-    new_state = (state[0], state[1])
-    while len(new_state[0]) > 2 and i < 4:
-        new_state = preprocessed_moves(board, new_state)
-        i += 1
-
-    if i == 4:
-        preprocessing(board, state)
-
-    return new_state
-
-
-def preprocessed_moves(board, state):
-    perms = list(product(['L', 'D', 'U', 'R'], repeat=4))
-
-    min_state = (state[0], state[1])
-    min_commanders = len(state[0])
-    origin_state = (state[0], state[1])
-    for perm in perms:
-        for direction in perm:
-            no_moves = False
-            while not no_moves:
-                if random.randint(0, 100) >= 90:
-                    break
-                new_positions = list(set([move(board, p, direction) for p in state[0]]))
-                no_moves = (new_positions == state[0])
-                if not no_moves:
-                    state = new_positions, state[1] + direction
-
-        new_commanders = len(state[0])
-        moves = state[1]
-        if (new_commanders == min_commanders and len(moves) < len(min_state[1])) or new_commanders < min_commanders:
-            if len(moves) < 100:
-                min_state = (state[0], moves)
-                min_commanders = new_commanders
-        state = origin_state
-    return min_state
-
 def bfs(board, start_node, goals):
     q = Queue()
     visited_states = set()
@@ -108,7 +66,7 @@ def check_mission(commanders, goals):
             return False
     return True
 
-def move(board, position, direction: string):
+def move(board, position, direction):
     x = position[0]
     y = position[1]
     match direction:
@@ -128,17 +86,14 @@ def move(board, position, direction: string):
             raise InvalidDirectionException("move", direction)
     return position
 
-def heuristic(state):
+def heuristic(state, scale):
     positions, path = state
-    res = 0
-    # for pos in positions:
-    #     res += min([distance(pos, goal) for goal in goals])
-    return max([dist[pos] for pos in positions])*1.2 + len(path)
+    return max([dist[pos] for pos in positions])*scale + len(path)
 
-def A_star(board, start_node, goals):
+def A_star(board, start_node, goals, scale):
     pq = PriorityQueue()
     visited_states = set()
-    pq.put((heuristic(start_node), start_node))
+    pq.put((heuristic(start_node, scale), start_node))
     visited_states.add(tuple(sorted(start_node[0])))
     while not pq.empty():
         _, node = pq.get()
@@ -153,20 +108,60 @@ def A_star(board, start_node, goals):
             next_path = path + direction
             my_hash = tuple(next_pos)
             if my_hash not in visited_states:
-                pq.put((heuristic((next_pos, next_path)), (next_pos, next_path)))
+                pq.put((heuristic((next_pos, next_path), scale), (next_pos, next_path)))
                 visited_states.add(my_hash)
     return None
+def preprocessing(board, state):
+    #print(state)
+    i = 0
+    new_state = (state[0], state[1])
+    while len(new_state[0]) > 20 and i < 6:
+        new_state = preprocessed_moves(board, new_state)
+        i += 1
+
+    if i == 6:
+        preprocessing(board, state)
+
+    return new_state
+
+
+def preprocessed_moves(board, state):
+    perms = list(product(['L', 'D', 'U', 'R'], repeat=4))
+
+    min_state = (state[0], state[1])
+    min_commanders = len(state[0])
+    origin_state = (state[0], state[1])
+    for perm in perms:
+        for direction in perm:
+            no_moves = False
+            while not no_moves:
+                if random.randint(0, 100) >= 90:
+                    break
+                new_positions = list(set([move(board, p, direction) for p in state[0]]))
+                no_moves = (new_positions == state[0])
+                if not no_moves:
+                    state = new_positions, state[1] + direction
+
+        new_commanders = len(state[0])
+        moves = state[1]
+        if (new_commanders == min_commanders and len(moves) < len(min_state[1])) or new_commanders < min_commanders:
+            if len(moves) < 40:
+                min_state = (state[0], moves)
+                min_commanders = new_commanders
+        state = origin_state
+    return min_state
 
 def main():
     board = load_data()
     positions = get_commanders_positions(board)
     goals = get_goals_positions(board)
     compute_distances(board, goals)
-    start_node = preprocessing(board, positions)
-    res = A_star(board, start_node, goals)
+    start_node = preprocessing(board, (positions, ""))
+    print("lol")
+    res = A_star(board, start_node, goals, 1.3)
+    print(len(res))
     with open("zad_output.txt", "w") as f:
         f.write(res)
-    #print(len(res), res)
 
 if __name__ == "__main__":
     main()
