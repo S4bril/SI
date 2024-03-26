@@ -73,7 +73,7 @@ def Astar(K, M):
 
 
 # wczytaj planszę
-with open('zad_input.txt') as f:
+with open('../zad_input.txt') as f:
     for line in f:
         board.append(list(line.strip()))
 
@@ -100,7 +100,7 @@ for i in range(n):
             shortest_paths((i, j))
 
 M = Astar(komando, "")
-with open('zad_output.txt', 'w') as f:
+with open('../zad_output.txt', 'w') as f:
     ans = ""
     with redirect_stdout(f):
         for i in M:

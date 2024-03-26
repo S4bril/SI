@@ -55,23 +55,6 @@ def move(position, direction):
         return r1, r2
     return position
 
-    # match direction:
-    #     case "U":
-    #         if board[x-1][y] != '#':
-    #             return x-1, y
-    #     case "D":
-    #         if board[x+1][y] != '#':
-    #             return x+1, y
-    #     case "L":
-    #         if board[x][y-1] != '#':
-    #             return x, y-1
-    #     case "R":
-    #         if board[x][y+1] != '#':
-    #             return x, y+1
-    #     case _:
-    #         raise InvalidDirectionException("move", direction)
-    # return position
-
 def bfs(start_node, goals):
     q = Queue()
     visited_states = set()
@@ -90,77 +73,52 @@ def bfs(start_node, goals):
                 q.put((next_pos, next_path))
                 visited_states.add(my_hash)
     return None
-def preprocessed_moves(positions):
-    state = positions, ""
-    min_commanders = len(positions)
+
+def preprocessing(state):
+    #print(state)
     i = 0
-    while min_commanders > 2:
-        perms = list(product(['L', 'D', 'U', 'R'], repeat=4))
-        state_min = state
-        for perm in perms:
-            lol = state[0]
-            path = state[1]
-            for direction in perm:
-                while True:
-                    # if(length > 100):
-                    #     break
-                    if random.randint(0, 100) >= 90:
-                        break
-                    new = list(set([move(p, direction) for p in lol]))
-                    path += direction
-                    if new == lol:
-                        break
-                    # length += 1
-                    lol = new
-                #print(lol)
-            number_of_pos = len(lol)
-            if number_of_pos < min_commanders:
-                state_min = (lol, state[1] + path)
-                min_commanders = number_of_pos
-        state = state_min
-        if len(state[1]) > 120:
-            i += 1
-            #print("lol", min_commanders, len(state[1]))
-            state = (positions, "")
-            min_commanders = len(positions)
-    return sorted(state[0]), state[1]
+    new_state = (state[0], state[1])
+    while len(new_state[0]) > 2 and i < 4:
+        new_state = preprocessed_moves(new_state)
+        i += 1
+
+    if i == 4:
+        preprocessing(state)
+
+    return new_state
 
 
-def find_best_moves(positions):
-    # state = random_moves(board, positions)
-    characters = ['L', 'R', 'U', 'D']
-    perms = list(product(characters, repeat=5))
+def preprocessed_moves(state):
+    perms = list(product(['L', 'D', 'U', 'R'], repeat=4))
 
-    # perms = ['RLDU', 'LRUD', 'LDUR', 'ULRD', 'RULD', 'DULR', 'DLRU', 'DRUL', 'LRDU', 'RDLU', 'DLUR', 'UDLR', 'DURL',
-    #            'LUDR', 'DRLU', 'ULDR', 'URDL', 'URLD', 'UDRL', 'RLUD', 'LURD', 'LDRU', 'RUDL', 'RDUL', 'LUDLU']
-
-    best_len = 10000
-    best_perm = ""
+    min_state = (state[0], state[1])
+    min_commanders = len(state[0])
+    origin_state = (state[0], state[1])
     for perm in perms:
-        state = positions
-        perm_temp = ""
-        for i in range(19):
-            for p in perm:
-                perm_temp += p
-                state = [move(pos, p) for pos in state]
-        state = sorted(list(set(state)))
-        length = len(state)
-        if length < best_len:
-            best_state = state
-            best_len = length
-            best_perm = perm_temp
+        for direction in perm:
+            no_moves = False
+            while not no_moves:
+                if random.randint(0, 100) >= 90:
+                    break
+                new_positions = list(set([move(p, direction) for p in state[0]]))
+                no_moves = (new_positions == state[0])
+                if not no_moves:
+                    state = new_positions, state[1] + direction
 
-    return best_state, "".join(best_perm)
+        new_commanders = len(state[0])
+        moves = state[1]
+        if (new_commanders == min_commanders and len(moves) < len(min_state[1])) or new_commanders < min_commanders:
+            if len(moves) < 100:
+                min_state = (state[0], moves)
+                min_commanders = new_commanders
+        state = origin_state
+    return min_state
 
 def main():
     load_data()
     positions = get_commanders_positions()
     goals = get_goals_positions()
-    #start_node = find_best_moves(positions)
-    #if len(start_node[0]) > 3:
-    start_node = preprocessed_moves(positions)
-    #print(start_node)
-    #print(start_node)
+    start_node = preprocessing((positions, ""))
     res = bfs(start_node, goals)
     with open("zad_output.txt", "w") as f:
         f.write(res)
