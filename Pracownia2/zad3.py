@@ -1,8 +1,16 @@
 import string
 from queue import PriorityQueue
 from queue import Queue
-
 import time
+
+# preprocessing:
+#   oblicz liczbę ruchów z każdego pola do najbliższego celu za pomocą BFS
+
+# program
+#   za pomocą funkcji A* oblicz optymalną liczbę ruchów
+
+# heurystyka
+#   maksymalna odległość komandosów do najbliższego celu + liczba dotychczasowych ruchów
 
 class InvalidDirectionException(Exception):
     def __init__(self, function_name, direction):
@@ -90,9 +98,6 @@ def move(board, position, direction: string):
 
 def heuristic(state):
     positions, path = state
-    res = 0
-    # for pos in positions:
-    #     res += min([distance(pos, goal) for goal in goals])
     return max([dist[pos] for pos in positions]) + len(path)
 
 def A_star(board, start_node, goals):
@@ -103,8 +108,6 @@ def A_star(board, start_node, goals):
     while not pq.empty():
         _, node = pq.get()
         pos, path = node
-        if len(path) == 3:
-            pass
         if check_mission(pos, goals):
             return path
         for direction in "LRUD":
@@ -125,7 +128,6 @@ def main():
     res = A_star(board, (positions, ""), goals)
     with open("zad_output.txt", "w") as f:
         f.write(res)
-    #print(len(res), res)
 
 if __name__ == "__main__":
     start_time = time.time()

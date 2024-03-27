@@ -1,8 +1,19 @@
 import random
-import string
 from itertools import product
 from queue import PriorityQueue
 from queue import Queue
+
+# preprocessing:
+#   oblicz permutację ruchów LRUD
+#   powtarzaj każdy ruch z każdej permutacji dopóki każdy komandoos nie jest na scianie, albo przestań losowo (10% szans)
+#   powtarzaj dopóki liczba komandosów nie wyniesie 20
+#   oblicz liczbę ruchów z każdego pola do najbliższego celu za pomocą BFS
+
+# program
+#   za pomocą funkcji A* oblicz optymalną liczbę ruchów
+
+# heurystyka
+#   (maksymalna odległość komandosów do najbliższego celu) * scale + liczba dotychczasowych ruchów
 
 class InvalidDirectionException(Exception):
     def __init__(self, function_name, direction):
@@ -112,7 +123,6 @@ def A_star(board, start_node, goals, scale):
                 visited_states.add(my_hash)
     return None
 def preprocessing(board, state):
-    #print(state)
     i = 0
     new_state = (state[0], state[1])
     while len(new_state[0]) > 20 and i < 6:
@@ -157,7 +167,6 @@ def main():
     goals = get_goals_positions(board)
     compute_distances(board, goals)
     start_node = preprocessing(board, (positions, ""))
-    print("lol")
     res = A_star(board, start_node, goals, 1.3)
     print(len(res))
     with open("zad_output.txt", "w") as f:

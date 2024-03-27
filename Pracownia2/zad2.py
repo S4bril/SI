@@ -1,9 +1,15 @@
-import string
 from queue import Queue
-from itertools import permutations
-from itertools import combinations
 from itertools import product
 import random
+
+# preprocessing:
+#   oblicz permutację ruchów LRUD
+#   powtarzaj każdy ruch z każdej permutacji dopóki każdy komandoos nie jest na scianie, albo przestań losowo (10% szans)
+#   powtarzaj dopóki liczba komandosów nie wyniesie 2
+
+# program
+#   przejdz stany zaczynając od stanu który obliczył preprocessing za pomocą BFS
+
 board = []
 
 dict_moves = {"U": (-1, 0), "D": (1, 0), "L": (0, -1), "R": (0, 1)}
@@ -77,12 +83,12 @@ def bfs(start_node, goals):
 def preprocessing(state):
     i = 0
     new_state = (state[0], state[1])
-    lol = 6
-    while len(new_state[0]) > 2 and i < lol:
+    x = 6
+    while len(new_state[0]) > 2 and i < x:
         new_state = preprocessed_moves(new_state)
         i += 1
 
-    if i == lol:
+    if i == x:
         preprocessing(state)
 
     return new_state

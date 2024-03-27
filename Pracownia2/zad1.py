@@ -1,6 +1,17 @@
 import random
 import itertools
 
+# cały program:
+#   zacznij od pustej tablicy
+#   poprawiaj losowy wiersz/kolumnę aż uzyskasz poprawny obrazek
+
+# funkcja poprawiająca:
+#   oblicz wszystkie kombinacje na których mogą stać bloki
+#   usuń kombinacje nie prawidłowe (bloki nachodzące na siebie, brak przerwy między nimi, blok wychodzący poza linię)
+#   na bazie tych kombinacji wygeneruj linie (lista stringów)
+#   porównuj linię wejściową z wygenerowanymi liniami i za pomocą xor oblicz ile ruchów potrzeba aby doprowadzić linię
+#   wejściową do danej wygenerowanej lini
+#   zwróć losowy poprawiony wiersz z wierszy o minimalnej liczbie potrzebnych operacji
 
 def opt_dist(line, setup):
     how_many = len(setup)

@@ -2,7 +2,14 @@ import string
 from queue import PriorityQueue
 from queue import Queue
 import time
+# preprocessing:
+#   oblicz liczbę ruchów z każdego pola do najbliższego celu za pomocą BFS
 
+# program
+#   za pomocą funkcji A* oblicz optymalną liczbę ruchów
+
+# heurystyka
+#   (maksymalna odległość komandosów do najbliższego celu) * scale + liczba dotychczasowych ruchów
 class InvalidDirectionException(Exception):
     def __init__(self, function_name, direction):
         print(function_name + ": " + direction + " is not a valid direction")
@@ -54,17 +61,10 @@ def bfs(board, start_node, goals):
                 visited_states.add(my_hash)
     return None
 def compute_distances(board, goals):
-    # def distance(p1, p2):
-    #     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
-    # for i in range(HEIGHT):
-    #     for j in range(WIDTH):
-    #         if board[i][j] != '#':
-    #             dist[(i, j)] = min([distance((i, j), goal) for goal in goals])
     for i in range(HEIGHT):
         for j in range(WIDTH):
             if board[i][j] != '#':
                 dist[(i, j)] = bfs(board, ((i, j), 0), goals)
-    #print(dist)
 
 def check_mission(commanders, goals):
     for commander in commanders:
@@ -94,9 +94,6 @@ def move(board, position, direction: string):
 
 def heuristic(state, scale):
     positions, path = state
-    res = 0
-    # for pos in positions:
-    #     res += min([distance(pos, goal) for goal in goals])
     return max([dist[pos] for pos in positions])*scale + len(path)
 
 def A_star(board, start_node, goals, scale):
@@ -104,6 +101,7 @@ def A_star(board, start_node, goals, scale):
     visited_states = set()
     pq.put((heuristic(start_node, scale), start_node))
     visited_states.add(tuple(sorted(start_node[0])))
+
     while not pq.empty():
         _, node = pq.get()
         pos, path = node
@@ -126,7 +124,7 @@ def main():
     positions = get_commanders_positions(board)
     goals = get_goals_positions(board)
     compute_distances(board, goals)
-    res = A_star(board, (positions, ""), goals, 1.3)
+    res = A_star(board, (positions, ""), goals, 1.2)
     print(len(res))
     with open("zad_output.txt", "w") as f:
         f.write(res)
