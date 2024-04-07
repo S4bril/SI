@@ -82,20 +82,37 @@ def sure_values(key):
     res = []
     for i in range(len(line_and)):
         if bool(line_and[i]):
-            res.append(i)
+            res.append((i, 1))
         elif not bool(line_or[i]):
-            res.append(i)
+            res.append((i, 0))
 
     return res
 
-# def ac3():
-#     # fill queue with all nodes
-#     q = Queue()
-#     for key in vars.keys():
-#         q.put(key)
-#
-#     while not q.empty():
-#         current_key = q.get()
+def delete_lines(key, sure_v):
+    prev_len = len(vars[key])
+    print("lol", vars[key], sure_v)
+    lines = list(filter(lambda line: line[key[1]] == sure_v, vars[key]))
+    vars[key] = lines
+    print("lol", lines)
+    return not prev_len == len(lines)
+
+def ac3():
+    # fill queue with all nodes
+    q = Queue()
+    for key in vars.keys():
+        q.put(key)
+    while not q.empty():
+        key = q.get()
+        if key[0] == 'r':
+            neighbors = 'c'
+        else:
+            neighbors = 'r'
+        sure_cells = sure_values(key)
+        neighbors_key = [(neighbors, i[0]) for i in sure_cells]
+        is_changed = [delete_lines((neighbors, i), vars[key][i]) for i in sure_cells]
+        for i, b in enumerate(is_changed):
+            if b:
+                q.put((neighbors, i))
 
 # def write_result():
 #     with open('zad_output.txt', 'w') as f:
@@ -118,3 +135,5 @@ if __name__ == "__main__":
     generate_vars()
     print(vars)
     print(sure_values(('r', 2)))
+    ac3()
+    print(vars)
