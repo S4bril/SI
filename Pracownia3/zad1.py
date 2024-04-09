@@ -82,18 +82,18 @@ def sure_values(key):
     res = []
     for i in range(len(line_and)):
         if bool(line_and[i]):
-            res.append((i, 1))
+            res.append(i)
         elif not bool(line_or[i]):
-            res.append((i, 0))
+            res.append(i)
 
     return res
 
-def delete_lines(key, sure_v):
+def delete_lines(key, sure_v, index):
     prev_len = len(vars[key])
-    print("lol", vars[key], sure_v)
-    lines = list(filter(lambda line: line[key[1]] == sure_v, vars[key]))
+    # print("lol", vars[key], sure_v)
+    lines = list(filter(lambda line: line[index] == sure_v, vars[key]))
     vars[key] = lines
-    print("lol", lines)
+    # print("lol", lines)
     return not prev_len == len(lines)
 
 def ac3():
@@ -102,38 +102,34 @@ def ac3():
     for key in vars.keys():
         q.put(key)
     while not q.empty():
-        key = q.get()
-        if key[0] == 'r':
+        row_or_col, index = q.get()
+        key = row_or_col, index
+        if row_or_col == 'r':
             neighbors = 'c'
         else:
             neighbors = 'r'
         sure_cells = sure_values(key)
-        neighbors_key = [(neighbors, i[0]) for i in sure_cells]
-        is_changed = [delete_lines((neighbors, i), vars[key][i]) for i in sure_cells]
-        for i, b in enumerate(is_changed):
-            if b:
-                q.put((neighbors, i))
+        for cell in sure_cells:
 
-# def write_result():
-#     with open('zad_output.txt', 'w') as f:
-#         res = zad1(row_descs, col_descs, rows, cols)
-#         for i in res:
-#             line = ""
-#             for j in range(len(i)):
-#                 if i[j]:
-#                     line += "#"
-#                 else:
-#                     line += "."
-#             print(line)
-#             line += "\n"
-#             f.write(line)
+            if len(vars[(neighbors, cell)]) > 1\
+                and delete_lines((neighbors, cell), vars[key][0][cell], index):
+                q.put((neighbors, cell))
+
+
+def write_result():
+
+    def convert(num):
+        if num == 1:
+            return '#'
+        return '.'
+
+    with open('zad_output.txt', 'w') as f:
+        for i in range(NUM_OF_ROWS):
+            line = list(map(convert, vars[('r', i)][0]))
+            f.write("".join(line) + '\n')
 
 if __name__ == "__main__":
     load_data()
-    print(row_bindings, col_bindings)
-    print(NUM_OF_ROWS, NUM_OF_COLS)
     generate_vars()
-    print(vars)
-    print(sure_values(('r', 2)))
     ac3()
-    print(vars)
+    write_result()
