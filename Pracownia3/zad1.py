@@ -99,8 +99,13 @@ def delete_lines(key, sure_v, index):
 def ac3():
     # fill queue with all nodes
     q = Queue()
-    for key in vars.keys():
-        q.put(key)
+    # for key in vars.keys():
+    #     q.put(key)
+    for i in range(NUM_OF_COLS):
+        q.put(('c', i))
+    for i in range(NUM_OF_ROWS):
+        q.put(('r', i))
+
     while not q.empty():
         row_or_col, index = q.get()
         key = row_or_col, index
@@ -111,8 +116,7 @@ def ac3():
         sure_cells = sure_values(key)
         for cell in sure_cells:
 
-            if len(vars[(neighbors, cell)]) > 1\
-                and delete_lines((neighbors, cell), vars[key][0][cell], index):
+            if len(vars[(neighbors, cell)]) > 1 and delete_lines((neighbors, cell), vars[key][0][cell], index):
                 q.put((neighbors, cell))
 
 
