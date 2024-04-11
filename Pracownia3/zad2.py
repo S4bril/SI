@@ -55,8 +55,9 @@ def generate_vars():
         poss_choices = list(map(lambda x: generate_line(x, row_bindings[i], length), poss_choices))
         # poss_choices.reverse()
         # midpoint = length // 2
-        midpoint = len(poss_choices) * 3 // 4
-        variables[('r', i)] = poss_choices[midpoint:] + poss_choices[:midpoint]
+        # midpoint = len(poss_choices) * 3 // 4
+        # variables[('r', i)] = poss_choices[midpoint:] + poss_choices[:midpoint]
+        variables[('r', i)] = poss_choices
         for poss in poss_choices:
             binaries[tuple(poss)] = int(''.join(map(str, poss)), 2)
 
@@ -68,8 +69,9 @@ def generate_vars():
         poss_choices = filter(lambda x: check(x, col_bindings[i]), poss_choices)
         poss_choices = list(map(lambda x: generate_line(x, col_bindings[i], length), poss_choices))
         # midpoint = length // 2
-        midpoint = len(poss_choices) * 3 // 4
-        variables[('c', i)] = poss_choices[midpoint:] + poss_choices[:midpoint]
+        # midpoint = len(poss_choices) * 3 // 4
+        # variables[('c', i)] = poss_choices[midpoint:] + poss_choices[:midpoint]
+        variables[('c', i)] = poss_choices
         for poss in poss_choices:
             binaries[tuple(poss)] = int(''.join(map(str, poss)), 2)
     best_targets = variables.keys()
