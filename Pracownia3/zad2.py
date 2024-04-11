@@ -10,16 +10,7 @@ col_bindings = []
 NUM_OF_ROWS = 0
 NUM_OF_COLS = 0
 
-best_targets = []
-
-
-def update_best_targets(variables):
-    global best_targets
-    def comparator(item):
-        return len(variables[item])
-
-    best_targets = sorted(best_targets, key=comparator)
-
+binaries = {}
 def load_data():
     global NUM_OF_ROWS, NUM_OF_COLS
     with open('zad_input.txt') as f:
@@ -37,7 +28,7 @@ def load_data():
 
 
 def generate_vars():
-    global best_targets
+    global best_targets, binaries
     def generate_line(choice, binding, length):
         new_line = [0] * length
         for idx, x in enumerate(choice):
@@ -56,29 +47,37 @@ def generate_vars():
 
     variables = {}
     # generate row vars
+    length = NUM_OF_COLS
     for i in range(NUM_OF_ROWS):
-        length = NUM_OF_COLS
         how_many = len(row_bindings[i])
         poss_choices = itertools.combinations([x for x in range(0, length)], how_many)
         poss_choices = filter(lambda x: check(x, row_bindings[i]), poss_choices)
         poss_choices = list(map(lambda x: generate_line(x, row_bindings[i], length), poss_choices))
-        midpoint = len(poss_choices) // 2
+        # poss_choices.reverse()
+        # midpoint = length // 2
+        midpoint = len(poss_choices) * 3 // 4
         variables[('r', i)] = poss_choices[midpoint:] + poss_choices[:midpoint]
+        for poss in poss_choices:
+            binaries[tuple(poss)] = int(''.join(map(str, poss)), 2)
 
     # generate col vars
+    length = NUM_OF_ROWS
     for i in range(NUM_OF_COLS):
-        length = NUM_OF_ROWS
         how_many = len(col_bindings[i])
         poss_choices = itertools.combinations([x for x in range(0, length)], how_many)
         poss_choices = filter(lambda x: check(x, col_bindings[i]), poss_choices)
         poss_choices = list(map(lambda x: generate_line(x, col_bindings[i], length), poss_choices))
-        midpoint = len(poss_choices) // 2
+        # midpoint = length // 2
+        midpoint = len(poss_choices) * 3 // 4
         variables[('c', i)] = poss_choices[midpoint:] + poss_choices[:midpoint]
+        for poss in poss_choices:
+            binaries[tuple(poss)] = int(''.join(map(str, poss)), 2)
     best_targets = variables.keys()
     return variables
-def sure_values3(key, variables):
-    lines = [int(''.join(map(str, x)), 2) for x in variables[key]]
-
+def sure_values2(key, variables):
+    length = len(variables[key][0])
+    # lines = [int(''.join(map(str, x)), 2) for x in variables[key]]
+    lines = [binaries[tuple(line)] for line in variables[key]]
     line_and = lines[0]
     line_or = lines[0]
 
@@ -87,47 +86,15 @@ def sure_values3(key, variables):
         line_or |= line
 
     res = []
-    for i in range(len(bin(line_and)) - 2):  # Determine the length of the binary representation
-        if line_and & (1 << i):
+    for i in range(length):#range(len(bin(line_and)) - 2):  # Determine the length of the binary representation
+        if line_and & (1 << (length - 1 - i)) or not line_or & (1 << (length - 1 - i)):
             res.append(i)
-        elif not line_or & (1 << i):
-            res.append(i)
-
+        # elif not line_or & (1 << (length - 1 - i)):
+        #     res.append(i)
+    # print(line_and)
+    # print(line_or)
     return res
-def sure_values2(key, variables):
-    def helper(lst):
-        return int(''.join(map(str, lst)), 2)
 
-    lines = list(map(helper, variables[key]))
-
-    def logical_or(str1, str2):
-        return str1 or str2
-
-    def logical_and(str1, str2):
-        return str1 and str2
-
-    # and
-    line_and = lines[0]
-    for line in lines[1:]:
-        line_and &= line#[logical_and(x, y) for x, y in zip(line_and, line)]
-    # or
-    line_or = lines[0]
-    for line in lines[1:]:
-        line_or |= line#[logical_or(x, y) for x, y in zip(line_or, line)]
-
-    res = []
-    # for i in range(len(line_and)):
-    #     if line_and[i]:
-    #         res.append(i)
-    #     elif not line_or[i]:
-    #         res.append(i)
-    length = line_and.bit_length()
-    for i in range(length):
-        if (line_and >> i) & 1 or not (line_or >> i) & 1:
-            res.append(length - 1 - i)
-    # print(variables[key])
-    # print(res)
-    return res
 def sure_values(key, variables):
     lines = [list(map(bool, x)) for x in variables[key]]
 
@@ -139,12 +106,14 @@ def sure_values(key, variables):
 
     # and
     line_and = lines[0]
-    for line in lines[1:]:
-        line_and = [logical_and(x, y) for x, y in zip(line_and, line)]
-    # or
     line_or = lines[0]
     for line in lines[1:]:
+        line_and = [logical_and(x, y) for x, y in zip(line_and, line)]
         line_or = [logical_or(x, y) for x, y in zip(line_or, line)]
+    # or
+    # line_or = lines[0]
+    # for line in lines[1:]:
+    #     line_or = [logical_or(x, y) for x, y in zip(line_or, line)]
 
     res = []
     for i in range(len(line_and)):
@@ -153,7 +122,11 @@ def sure_values(key, variables):
         elif not line_or[i]:
             res.append(i)
 
-    # print(res, sure_values2(key, variables))
+    # if res != sure_values2(key, variables):
+    #     print(res, sure_values2(key, variables))
+    # print(line_and)
+    # print(line_or)
+
     return res
 
 def delete_lines(key, sure_v, index, variables):
@@ -190,7 +163,7 @@ def ac3(vars_local):
         else:
             neighbors = 'r'
 
-        sure_cells = sure_values(key, vars_local)
+        sure_cells = sure_values2(key, vars_local)
         for cell in sure_cells:
             if (len(vars_local[(neighbors, cell)]) > 1
                     and delete_lines((neighbors, cell), vars_local[key][0][cell], index, vars_local)):
@@ -210,7 +183,7 @@ def ac3(vars_local):
 def next_key(key):
     key += 1
     # print(len(best_targets), NUM_OF_ROWS + NUM_OF_COLS)
-    if key >= NUM_OF_ROWS + NUM_OF_COLS:
+    if key >= NUM_OF_ROWS + NUM_OF_COLS - 10:
         return None
     return key
 
@@ -220,25 +193,40 @@ def is_solved(vars_local):
             return False
     return True
 
-def back_tracking(key_num, curr_vars):
-    if key_num is None:
-        if is_solved(curr_vars):
-            return curr_vars
+def back_tracking(curr_vars):
+    visited = set()
+    not_visited = set(curr_vars.keys())
+    def best_target(variables):
+        min_len = 10000000
+        res = None
+        for key in list(not_visited):
+            length = len(variables[key])
+            if length < min_len:
+                min_len = length
+                res = key
+        return res
+    def helper(key, curr_vars):
+        # print(not_visited)
+        if key is None:
+            if is_solved(curr_vars):
+                return curr_vars
+            return None
+
+        visited.add(key)
+        not_visited.remove(key)
+        for poss in curr_vars[key]:
+            curr_vars_copy = curr_vars.copy()
+            curr_vars_copy[key] = [poss]
+            if not ac3(curr_vars_copy):
+                continue
+            next_k = best_target(curr_vars_copy)
+            res = helper(next_k, curr_vars_copy)
+            if res is not None:
+                return res
+        visited.remove(key)
+        not_visited.add(key)
         return None
-
-    next_k = next_key(key_num)
-    key = best_targets[key_num]
-    for poss in curr_vars[key]:
-        curr_vars_copy = curr_vars.copy()
-        curr_vars_copy[key] = [poss]
-        if not ac3(curr_vars_copy):
-            continue
-        update_best_targets(curr_vars_copy)
-        res = back_tracking(next_k, curr_vars_copy)
-        if res is not None:
-            return res
-
-    return None
+    return helper(best_target(curr_vars), curr_vars)
 
 def write_result(variables):
 
@@ -247,6 +235,7 @@ def write_result(variables):
             return '#'
         return '.'
 
+    # print(variables)
     with open('zad_output.txt', 'w') as f:
         for i in range(NUM_OF_ROWS):
             line = list(map(convert, variables[('r', i)][0]))
@@ -256,12 +245,13 @@ if __name__ == "__main__":
     start_time = time()
     load_data()
     variables = generate_vars()
-    update_best_targets(variables)
+    # print(variables[('r', 0)])
     # print(best_targets)
     ac3(variables)
-    result = back_tracking(0, variables.copy())
+    result = back_tracking(variables)
     # print(result)
-    write_result(result)
+    write_result(result) # zad2
+    # write_result(variables) # zad 1
     end_time = time()
     elapsed_time = end_time - start_time  # Calculate elapsed time
     print("Elapsed time:", elapsed_time, "seconds")
