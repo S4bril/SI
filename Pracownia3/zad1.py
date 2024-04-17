@@ -1,3 +1,14 @@
+"""
+1. wygeneruj dziedziny generując wszystkie permutacje i usuwając niepoprawne
+2. uruchom algorytm ac3
+    - wstaw wszystkie zmienne na kolejkę
+    - dopuki kolejka nie jest pusta:
+        * ściągnij zmienną z kolejki
+        * oblicz pewne wartości (and dla każdej linii i or)
+        * z innych zmiennych które wspóldzielą komórki
+        w których znleźliśmy pewne wartości usuń linie,
+        które w tej komórce różnią się wartością
+"""
 import itertools
 from queue import Queue
 

@@ -1,3 +1,15 @@
+"""
+Backtracking:
+    1) wybierz zmienną o najmniejszej dziedzinie
+    2) wybierz dowolną linię, resztę usuń
+    3) dla tak zmodyfikowanej zmiennej odpal ac3() z zad1
+    4) jeżeli w trakcie działania ac3() z jakiejś domeny
+    zostaną usunietę wszystkie linie przerwij ścieżkę
+    5) jeżeli nie ma już niezmodyfikowanych zmiennych do
+    wyboru sprawdź czy znaleziono rozwiązanie
+    6) jeżeli nie odetnij ścieżkę
+"""
+
 import itertools
 from queue import Queue
 from copy import deepcopy
