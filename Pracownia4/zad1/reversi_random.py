@@ -4,7 +4,7 @@ M = 8
 
 move_list = []
 
-directions = [ (0,1), (1,0), (-1,0), (0,-1), (1,1), (-1,-1), (1,-1), (-1,1) ]
+directions = [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
 
 grid = [
     [None, None, None, None, None, None, None, None],
@@ -24,7 +24,7 @@ for i in range(M):
         if grid[i][j] is None:
             fields.add((j, i))
 
-def reset_grid():
+def reset_game():
     global grid, fields, move_list
     move_list = []
     grid = [
@@ -49,7 +49,7 @@ def get(x,y):
     return None
 
 def can_beat(x, y, d, player):
-    dx,dy = d
+    dx, dy = d
     x += dx
     y += dy
     cnt = 0
@@ -59,11 +59,11 @@ def can_beat(x, y, d, player):
         cnt += 1
     return cnt > 0 and get(x, y) == player
 
-def moves(self, player):
+def moves(player):
     res = []
-    for (x,y) in fields:
-        if any( self.can_beat(x,y, direction, player) for direction in directions):
-            res.append( (x,y) )
+    for (x, y) in fields:
+        if any(can_beat(x, y, direction, player) for direction in directions):
+            res.append((x, y))
     if not res:
         return [None]
     return res
@@ -79,12 +79,12 @@ def result():
                 res += 1
     return res
 
-def terminal(self):
+def terminal():
     if not fields:
         return True
-    if len(self.move_list) < 2:
+    if len(move_list) < 2:
         return False
-    return self.move_list[-1] == self.move_list[-2] == None
+    return move_list[-1] == move_list[-2] == None
 
 def result():
     res = 0
@@ -121,8 +121,23 @@ def do_move(move, player):
             for (nx, ny) in to_beat:
                 grid[ny][nx] = player
 
-def reversi_random(player):
+def random_move(player):
     ms = moves(player)
     if ms:
         return random.choice(ms)
     return [None]
+
+if __name__ == '__main__':
+    games = 2000
+    for i in range(games):
+        player = 0
+        reset_game()
+
+        while True:
+            m = random_move(player)
+            do_move(m, player)
+            player = 1 - player
+            # raw_input()
+            if terminal():
+                break
+    print('Result', result())
