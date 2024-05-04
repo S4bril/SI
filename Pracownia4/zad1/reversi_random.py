@@ -1,4 +1,6 @@
 import random
+import time
+import copy
 
 M = 8
 
@@ -10,12 +12,21 @@ grid = [
     [None, None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None, None],
-    [None, None, None, 1, 0, None, None, None],
-    [None, None, None, 0, 1, None, None, None],
+    [None, None, None,  1,    0,   None, None, None],
+    [None, None, None,  0,    1,   None, None, None],
     [None, None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None, None]
 ]
+
+weights = [[100, -20, 10, 5, 5, 10, -20, 100],
+           [-20, -50, -2, -2, -2, -2, -50, -20],
+           [10, -2, -1, -1, -1, -1, -2, 10],
+           [5, -2, -1, -1, -1, -1, -2, 5],
+           [5, -2, -1, -1, -1, -1, -2, 5],
+           [10, -2, -1, -1, -1, -1, -2, 10],
+           [-20, -50, -2, -2, -2, -2, -50, -20],
+           [100, -20, 10, 5, 5, 10, -20, 100]]
 
 fields = set()
 
@@ -31,8 +42,8 @@ def reset_game():
         [None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None],
-        [None, None, None, 1, 0, None, None, None],
-        [None, None, None, 0, 1, None, None, None],
+        [None, None, None,  1,    0,   None, None, None],
+        [None, None, None,  0,    1,   None, None, None],
         [None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None]
@@ -65,7 +76,7 @@ def moves(player):
         if any(can_beat(x, y, direction, player) for direction in directions):
             res.append((x, y))
     if not res:
-        return [None]
+        return None
     return res
 
 def result():
@@ -121,23 +132,83 @@ def do_move(move, player):
             for (nx, ny) in to_beat:
                 grid[ny][nx] = player
 
+def heuristics(player):
+    res = 0
+    for i in range(M):
+        for j in range(M):
+            if grid[i][j] == player:
+                res += weights[i][j]
+    return res
+
 def random_move(player):
     ms = moves(player)
     if ms:
         return random.choice(ms)
-    return [None]
+    return None
 
-if __name__ == '__main__':
-    games = 2000
+def my_agent_weights(player):
+    ms = moves(player)
+    if ms:
+        best = -10000
+        best_move = None
+        for (mx, my) in ms:
+            if weights[mx][my] > best:
+                best = weights[mx][my]
+                best_move = (mx, my)
+        return best_move
+    return None
+
+def my_agent_heuristics(player):
+    global grid
+    ms = moves(player)
+    if ms:
+        best = -10000
+        best_move = None
+        for (mx, my) in ms:
+            grid_copy = copy.deepcopy(grid)
+            do_move((mx, my), player)
+            h = heuristics(player)
+            # if player == 0:
+            #     h -= result()
+            # else:
+            #     h += result()
+            grid = grid_copy
+            if h > best:
+                best = h
+                best_move = (mx, my)
+        return best_move
+    return None
+
+def my_agent_minmax(player):
+    def minimax()
+
+def main():
+    games = 1000
+    my_agent_loses = 0
+    agents = [random_move, my_agent_heuristics]
     for i in range(games):
         player = 0
+        if i < games / 2:
+            agent = 0  # random agent is starting
+        else:
+            agent = 1  # my agent is starting
         reset_game()
 
         while True:
-            m = random_move(player)
+            m = agents[agent](player)
             do_move(m, player)
             player = 1 - player
-            # raw_input()
+            agent = 1 - agent
             if terminal():
                 break
-    print('Result', result())
+        if agent == 1:
+            my_agent_loses += int(result() < 0)
+        else:
+            my_agent_loses += int(result() > 0)
+    print('My agent loses:', my_agent_loses)
+
+if __name__ == '__main__':
+    start_time = time.time()
+    main()
+    elapsed_time = time.time() - start_time
+    print('Elapsed time:', elapsed_time, "seconds")
