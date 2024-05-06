@@ -6,6 +6,8 @@ import math
 
 M = 8
 
+states = {}
+
 rev = []
 
 move_list = []
@@ -207,53 +209,64 @@ def my_agent_heuristics(player):
     return None
 
 def my_agent_minmax(agent):
-    if len(move_list) < 53:
-        # print("lol")
-        return random_move(agent)
-    def minimax(depth, maximizingPlayer, player):
+    # if len(move_list) < 10:
+    #     # print("lol")
+    #     return random_move(agent)
+    def minimax(depth, maximizingPlayer, player, alpha, beta):
         global grid
 
-        if depth == 0 or terminal():
-            # if maximizingPlayer:
-            #     return None, heuristics(player)
-            # else:
-            #     return None, -heuristics(player)
+        if terminal():
             if agent == 1:
                 return None, result()
             else:
                 return None, -result()
 
+        if depth == 0:
+            return None, heuristics(agent) - heuristics(1 - agent)
+            # if maximizingPlayer:
+            #     return None, heuristics(player)
+            # else:
+            #     return None, -heuristics(player)
+
         ms = moves(player)
 
         if not ms:
             do_move(None, player)
-            res = minimax(depth-1, not maximizingPlayer, 1 - player)
+            res = minimax(depth-1, not maximizingPlayer, 1 - player, alpha, beta)
             last_step_back()
             return res
+
+        # random.shuffle(ms)
 
         if maximizingPlayer:
             maxEval = -1000
             bestMove = None
             for (mx, my) in ms:
                 do_move((mx, my), player)
-                eval = minimax(depth-1, False, 1 - player)
+                eval = minimax(depth-1, False, 1 - player, alpha, beta)
+                last_step_back()
                 if eval[1] > maxEval:
                     maxEval = eval[1]
                     bestMove = (mx, my)
-                last_step_back()
+                alpha = max(alpha, eval[1])
+                if beta <= alpha:
+                    break
             return bestMove, maxEval
 
         else:
-            # ms = ms[:len(ms)//5]
+            # ms = ms[:len(ms)]
             minEval = 1000
             bestMove = None
             for (mx, my) in ms:
                 do_move((mx, my), player)
-                eval = minimax(depth-1, True, 1 - player)
+                eval = minimax(depth-1, True, 1 - player, alpha, beta)
+                last_step_back()
                 if eval[1] < minEval:
                     minEval = eval[1]
                     bestMove = (mx, my)
-                last_step_back()
+                beta = min(beta, eval[1])
+                if beta <= alpha:
+                    break
             return bestMove, minEval
 
 
@@ -263,7 +276,8 @@ def my_agent_minmax(agent):
             # last_step_back()
             # return mv, eval[1]
 
-    return minimax(200, True, agent)[0]
+    x = len(move_list) // 10 + 1 #40?
+    return minimax(x, True, agent, -1000000, 1000000)[0]
 
 def main():
     games = 1000
