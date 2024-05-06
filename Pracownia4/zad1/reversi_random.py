@@ -207,9 +207,9 @@ def my_agent_heuristics(player):
     return None
 
 def my_agent_minmax(agent):
-    # if len(move_list) < 20:
-    #     # print("lol")
-    #     return random_move(agent)
+    if len(move_list) < 53:
+        # print("lol")
+        return random_move(agent)
     def minimax(depth, maximizingPlayer, player):
         global grid
 
@@ -227,8 +227,9 @@ def my_agent_minmax(agent):
 
         if not ms:
             do_move(None, player)
-            return minimax(depth-1, not maximizingPlayer, 1 - player)
+            res = minimax(depth-1, not maximizingPlayer, 1 - player)
             last_step_back()
+            return res
 
         if maximizingPlayer:
             maxEval = -1000
@@ -267,23 +268,25 @@ def my_agent_minmax(agent):
 def main():
     games = 1000
     my_agent_loses = 0
-    agents = [random_move, my_agent_minmax]
     for i in tqdm(range(games), desc="Simulating games"):
         player = 0
         if i < games / 2:
-            agent = 0  # random agent is starting
+            agent = 0
         else:
-            agent = 1  # my agent is starting
+            agent = 1
         reset_game()
 
         while True:
             # print(rev)
-            m = agents[agent](player)
+            if agent == player:
+                m = my_agent_minmax(player)
+            else:
+                m = random_move(player)
             do_move(m, player)
             player = 1 - player
-            agent = 1 - agent
             if terminal():
                 break
+
         if agent == 1:
             my_agent_loses += int(result() < 0)
         else:
