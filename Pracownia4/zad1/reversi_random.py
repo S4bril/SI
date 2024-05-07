@@ -5,24 +5,15 @@ from collections import OrderedDict
 
 M = 8
 
-states = {}
+length = 0
 
-rev = []
+states = {}
 
 move_list = []
 
 directions = [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
 
-grid = [
-    [None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, None, None, None],
-    [None, None, None,  1,    0,   None, None, None],
-    [None, None, None,  0,    1,   None, None, None],
-    [None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, None, None, None],
-    [None, None, None, None, None, None, None, None]
-]
+grid = []
 
 weights = [
     [ 4, -3,  2,  2,  2,  2, -3,  4],
@@ -47,20 +38,17 @@ weights = [
 
 fields = set()
 
-def last_step_back():
-    global grid, fields, move_list, rev
+def last_step_back(rev):
+    global grid, fields, move_list
 
-    move = move_list[-1]
-    move_list = move_list[:-1]
+    move = move_list.pop()
 
-    r = rev[-1]
-    rev = rev[:-1]
     if move:
         fields.add(move)
-        grid[move[0]][move[1]] = None
+        grid[move[0] + 1][move[1] + 1] = None
 
-        for cell in r:
-            grid[cell[0]][cell[1]] = 1 - grid[cell[0]][cell[1]]
+        for cell in rev:
+            grid[cell[0] + 1][cell[1] + 1] = 1 - grid[cell[0] + 1][cell[1] + 1]
 
 def print_grid():
     print("  ", end="")
@@ -78,36 +66,41 @@ def print_grid():
     print()
 
 def reset_game():
-    global grid, fields, move_list, rev
-    rev = []
+    global grid, fields, move_list, length
+    length = 0
     move_list = []
     grid = [
-        [None, None, None, None, None, None, None, None],
-        [None, None, None, None, None, None, None, None],
-        [None, None, None, None, None, None, None, None],
-        [None, None, None,  1,    0,   None, None, None],
-        [None, None, None,  0,    1,   None, None, None],
-        [None, None, None, None, None, None, None, None],
-        [None, None, None, None, None, None, None, None],
-        [None, None, None, None, None, None, None, None]
+        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None,  1,    0,   None, None, None, None],
+        [None, None, None, None,  0,    1,   None, None, None, None],
+        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None, None, None],
     ]
-    fields = set()
-    for i in range(M):
-        for j in range(M):
-            if grid[i][j] is None:
-                fields.add((i, j))
+    fields = {
+        (0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7),
+        (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7),
+        (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7),
+        (3, 0), (3, 1), (3, 2),                 (3, 5), (3, 6), (3, 7),
+        (4, 0), (4, 1), (4, 2),                 (4, 5), (4, 6), (4, 7),
+        (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6), (5, 7),
+        (6, 0), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7),
+        (7, 0), (7, 1), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), (7, 7),
+    }
 
-def get(x,y):
-    if 0 <= x < M and 0 <= y < M:
-        return grid[x][y]
-    return None
+def get(x, y):
+    return grid[x + 1][y + 1]
 
 def can_beat(x, y, d, player):
     dx, dy = d
     x += dx
     y += dy
     cnt = 0
-    while get(x, y) == 1-player:
+    while get(x, y) == 1 - player:
         x += dx
         y += dy
         cnt += 1
@@ -127,7 +120,7 @@ def result():
     res = 0
     for x in range(M):
         for y in range(M):
-            b = grid[x][y]
+            b = get(x, y)
             if b == 0:
                 res -= 1
             elif b == 1:
@@ -146,13 +139,12 @@ def do_move(move, player):
     move_list.append(move)
 
     if move == None:
-        rev.append(None)
-        return
+        return []
 
     # print(move)
     x, y = move
     x0, y0 = move
-    grid[x][y] = player # y x ????
+    grid[x + 1][y + 1] = player # y x ????
     fields -= set([move])
     reversed_cells = []
     for dx, dy in directions:
@@ -166,9 +158,9 @@ def do_move(move, player):
             y += dy
         if get(x, y) == player:
             for (nx, ny) in to_beat:
-                grid[nx][ny] = player
+                grid[nx + 1][ny + 1] = player
                 reversed_cells.append((nx, ny))
-    rev.append(reversed_cells)
+    return reversed_cells
 
 def random_move(player):
     ms = moves(player)
@@ -181,9 +173,9 @@ def heuristics(player):
     res_opponent = 0
     for i in range(M):
         for j in range(M):
-            if grid[i][j] == player:
+            if get(i, j) == player:
                 res_player += weights[i][j]
-            elif grid[i][j] == 1 - player:
+            elif get(i, j) == 1 - player:
                 res_opponent += weights[i][j]
     return res_player, res_opponent
 
@@ -214,9 +206,9 @@ def my_agent_minmax(agent):
         ms = moves(player)
 
         if not ms:
-            do_move(None, player)
+            rev = do_move(None, player)
             res = minimax(depth-1, not maximizingPlayer, 1 - player, alpha, beta)
-            last_step_back()
+            last_step_back(rev)
             return res
 
         # random.shuffle(ms)
@@ -227,9 +219,9 @@ def my_agent_minmax(agent):
             maxEval = -1000
             bestMove = None
             for (mx, my) in ms:
-                do_move((mx, my), player)
+                rev = do_move((mx, my), player)
                 eval = minimax(depth-1, False, 1 - player, alpha, beta)
-                last_step_back()
+                last_step_back(rev)
                 if eval[1] > maxEval:
                     maxEval = eval[1]
                     bestMove = (mx, my)
@@ -243,9 +235,9 @@ def my_agent_minmax(agent):
             minEval = 1000
             bestMove = None
             for (mx, my) in ms:
-                do_move((mx, my), player)
+                rev = do_move((mx, my), player)
                 eval = minimax(depth-1, True, 1 - player, alpha, beta)
-                last_step_back()
+                last_step_back(rev)
                 if eval[1] < minEval:
                     minEval = eval[1]
                     bestMove = (mx, my)
@@ -254,7 +246,7 @@ def my_agent_minmax(agent):
                     break
             return bestMove, minEval
 
-    x = len(move_list)**2 // 600 + 1
+    x = len(move_list)**3 // 30000 + 1
     return minimax(x, True, agent, -1000000, 1000000)[0]
 
 if __name__ == '__main__':
