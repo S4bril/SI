@@ -1,8 +1,7 @@
 import random
 import time
-import copy
 from tqdm import tqdm
-import math
+from collections import OrderedDict
 
 M = 8
 
@@ -35,6 +34,16 @@ weights = [
     [-3, -4, -1, -1, -1, -1, -4, -3],
     [ 4, -3,  2,  2,  2,  2, -3,  4]
 ]
+# weights = [
+#     [20, -3, 11,  8,  8, 11, -3, 20],
+#     [-3, -7, -4,  1,  1, -4, -7, -3],
+#     [11, -4,  2,  2,  2,  2, -4, 11],
+#     [ 8,  1,  2, -3, -3,  2,  1,  8],
+#     [ 8,  1,  2, -3, -3,  2,  1,  8],
+#     [11, -4,  2,  2,  2,  2, -4, 11],
+#     [-3, -7, -4,  1,  1, -4, -7, -3],
+#     [20, -3, 11,  8,  8, 11, -3, 20]
+# ]
 
 fields = set()
 
@@ -62,7 +71,7 @@ def print_grid():
         print(f"{row_idx:2}|", end="")
         for cell in row:
             if cell is None:
-                print("X", end=" ")  # Print empty cell
+                print(" ", end=" ")  # Print empty cell
             else:
                 print(cell, end=" ")  # Print cell value
         print()
@@ -161,57 +170,34 @@ def do_move(move, player):
                 reversed_cells.append((nx, ny))
     rev.append(reversed_cells)
 
-def heuristics(player):
-    res = 0
-    for i in range(M):
-        for j in range(M):
-            if grid[i][j] == player:
-                res += weights[i][j]
-    return res
-
 def random_move(player):
     ms = moves(player)
     if ms:
         return random.choice(ms)
     return None
 
-def my_agent_weights(player):
-    ms = moves(player)
-    if ms:
-        best = -10000
-        best_move = None
-        for (mx, my) in ms:
-            if weights[mx][my] > best:
-                best = weights[mx][my]
-                best_move = (mx, my)
-        return best_move
-    return None
+def heuristics(player):
+    res_player = 0
+    res_opponent = 0
+    for i in range(M):
+        for j in range(M):
+            if grid[i][j] == player:
+                res_player += weights[i][j]
+            elif grid[i][j] == 1 - player:
+                res_opponent += weights[i][j]
+    return res_player, res_opponent
 
-def my_agent_heuristics(player):
+def heuristics_function(moves, player) -> OrderedDict:
     global grid
-    ms = moves(player)
-    if ms:
-        best = -10000
-        best_move = None
-        for (mx, my) in ms:
-            grid_copy = copy.deepcopy(grid)
-            do_move((mx, my), player)
-            h = heuristics(player)
-            if player == 0:
-                h -= result()
-            else:
-                h += result()
-            last_step_back(grid_copy)
-            if h > best:
-                best = h
-                best_move = (mx, my)
-        return best_move
-    return None
+    res = {}
+    for m in moves:
+        do_move(m, player)
+        p, o = heuristics(player)
+        res[m] = p - o
+        last_step_back()
+    return OrderedDict(sorted(res.items(), key=lambda item: item[1]))
 
 def my_agent_minmax(agent):
-    # if len(move_list) < 10:
-    #     # print("lol")
-    #     return random_move(agent)
     def minimax(depth, maximizingPlayer, player, alpha, beta):
         global grid
 
@@ -222,11 +208,8 @@ def my_agent_minmax(agent):
                 return None, -result()
 
         if depth == 0:
-            return None, heuristics(agent) - heuristics(1 - agent)
-            # if maximizingPlayer:
-            #     return None, heuristics(player)
-            # else:
-            #     return None, -heuristics(player)
+            p, o = heuristics(agent)
+            return None, p - o
 
         ms = moves(player)
 
@@ -237,6 +220,8 @@ def my_agent_minmax(agent):
             return res
 
         # random.shuffle(ms)
+        # print(heuristics_function(ms, player))
+        # ms = heuristics_function(ms, player).keys()
 
         if maximizingPlayer:
             maxEval = -1000
@@ -254,7 +239,7 @@ def my_agent_minmax(agent):
             return bestMove, maxEval
 
         else:
-            # ms = ms[:len(ms)]
+            # ms = ms[:len(ms)//2]
             minEval = 1000
             bestMove = None
             for (mx, my) in ms:
@@ -269,29 +254,18 @@ def my_agent_minmax(agent):
                     break
             return bestMove, minEval
 
-
-            # mv = random.choice(ms)
-            # do_move(mv, player)
-            # eval = minimax(depth - 1, True, 1 - player)
-            # last_step_back()
-            # return mv, eval[1]
-
-    x = len(move_list) // 10 + 1 #40?
+    x = len(move_list)**2 // 600 + 1
     return minimax(x, True, agent, -1000000, 1000000)[0]
 
-def main():
+if __name__ == '__main__':
     games = 1000
     my_agent_loses = 0
     for i in tqdm(range(games), desc="Simulating games"):
         player = 0
-        if i < games / 2:
-            agent = 0
-        else:
-            agent = 1
+        agent = i % 2
         reset_game()
 
         while True:
-            # print(rev)
             if agent == player:
                 m = my_agent_minmax(player)
             else:
@@ -306,9 +280,3 @@ def main():
         else:
             my_agent_loses += int(result() > 0)
     print('My agent loses:', my_agent_loses)
-
-if __name__ == '__main__':
-    start_time = time.time()
-    main()
-    elapsed_time = time.time() - start_time
-    print('Elapsed time:', elapsed_time, "seconds")
