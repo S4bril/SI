@@ -450,7 +450,7 @@ class Player(object):
         self.process = subprocess.Popen(
             command, bufsize=1, shell=False, text=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            preexec_fn=os.setpgrp)
+            preexec_fn=os.setpgrp) #os.setpgrp
         self.threads = [
             threading.Thread(target=self._reader),
             threading.Thread(target=self._writer), ]
