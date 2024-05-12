@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 reversi_minmax.py 2
+python3 cassio.py 2

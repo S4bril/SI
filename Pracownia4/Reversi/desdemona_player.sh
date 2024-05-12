@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 reversi_minmax.py 3
+python3 desdemona.py 3
