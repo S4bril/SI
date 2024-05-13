@@ -262,7 +262,7 @@ class Player(object):
                     move = None
                 else:
                     xs, ys, xd, yd = move
-                    move = ( (xs, ys), (xd, yd))
+                    move = ((xs, ys), (xd, yd))
                         
                 self.game.do_move(move)
             elif cmd == 'ONEMORE':

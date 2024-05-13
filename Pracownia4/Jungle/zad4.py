@@ -264,71 +264,44 @@ class Player(object):
         self.my_player = 1
         self.say('RDY')
 
-    def judge(self, move, depth):
-        #  save state
-        copy_board = copy.deepcopy(self.game.board)
-        copy_pieces = copy.deepcopy(self.game.pieces)
-        copy_cur_player = self.game.curplayer
-        counter = self.game.peace_counter
+    def judge(self):
+        #  find enemy cave
+        if self.my_player == 0:
+            goal_x, goal_y = 3, 0
+        else:
+            goal_x, goal_y = 3, 8
 
-        #  make first move
-        self.game.do_move(move)
+        def distance(pos): # computes manhattan distance
+            x, y = pos
+            return abs(x - goal_x) + abs(y - goal_y)
 
-        # print("xd")
+        return sum(list((map(distance, self.game.pieces[self.my_player].values()))))
 
-        #  simulate games
-        my_agent = 1 - self.game.curplayer
-        # if self.game.victory(1 - self.game.curplayer):
-        #     if self.game.winner == my_agent:
-        #         return 1
-        #     else:
-        #         return -1
-        win_loss = 0
-        games = 0
-        for i in range(depth):
-            #  check if game has ended
-            if self.game.victory(1 - self.game.curplayer):
-                if self.game.winner == my_agent:
-                    win_loss += 1
-                else:
-                    win_loss -= 1
-                #  restore state
-                self.game.board = copy.deepcopy(copy_board).copy()
-                self.game.pieces = copy.deepcopy(copy_pieces)
-                self.game.curplayer = copy_cur_player
-                self.game.peace_counter = counter
-                self.game.do_move(move)
-                games += 1
-                continue
-
-
-            #  get all possible moves
-            random_move = self.game.random_move(self.game.curplayer)
-            self.game.do_move(random_move)
-
-        #  restore state
-        # print(games, file=sys.stderr)
-        self.game.board = copy_board
-        self.game.curplayer = copy_cur_player
-        self.game.pieces = copy_pieces
-        self.game.peace_counter = counter
-
-        return win_loss
 
     def find_move(self):
 
         #  find all possible moves
         moves = self.game.moves(self.my_player)
-        mv_len = len(moves)
 
         if moves:
-            best_judgement = -sys.maxsize
+
+            best_judgement = sys.maxsize
             best_move = None
             for mv in moves:
-                x = 20000 // mv_len
-                judgement = self.judge(mv, x)
+                copy_board = copy.deepcopy(self.game.board)
+                copy_cur_player = self.game.curplayer
+                copy_pieces = copy.deepcopy(self.game.pieces)
+                counter = self.game.peace_counter
 
-                if judgement > best_judgement:
+                self.game.do_move(mv)
+                judgement = self.judge()
+
+                self.game.board = copy.deepcopy(copy_board)
+                self.game.pieces = copy.deepcopy(copy_pieces)
+                self.game.curplayer = copy_cur_player
+                self.game.peace_counter = counter
+
+                if judgement < best_judgement:
                     best_judgement = judgement
                     best_move = mv
 
@@ -377,7 +350,6 @@ class Player(object):
 
 if __name__ == '__main__':
     player = Player()
-    player.loop()
     try:
         player.loop()
     except Exception as e:
