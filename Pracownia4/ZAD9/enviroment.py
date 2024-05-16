@@ -105,7 +105,7 @@ class Game:
         self.move_list.append(move)
 
         if move == None:
-            self.cur_player = 1 - self.curr_player
+            self.curr_player = 1 - self.curr_player
             return []
 
         x, y = move
@@ -126,7 +126,7 @@ class Game:
                 for (nx, ny) in to_beat:
                     self.grid[nx][ny] = self.curr_player
                     reversed_cells.append((nx, ny))
-        self.cur_player = 1 - self.curr_player
+        self.curr_player = 1 - self.curr_player
         return reversed_cells
 
     def random_move(self):
@@ -136,19 +136,17 @@ class Game:
         return None
 
     def heuristic(self):
-        weights_player = 0
-        weights_opponent = 0
+        w = 0
         coins_player = 0
         coins_opponent = 0
         for i in range(M):
             for j in range(M):
                 if self.get(i, j) == self.player:
-                    weights_player += WEIGHTS[i][j]
+                    w += WEIGHTS[i][j]
                     coins_player += 1
                 elif self.get(i, j) == 1 - self.player:
-                    weights_opponent += WEIGHTS[i][j]
+                    w -= WEIGHTS[i][j]
                     coins_opponent += 1
-        w = (weights_player - weights_opponent)
         return w #+ 5 * mobility(player)
 
     def print_grid(self):
