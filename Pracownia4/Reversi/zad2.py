@@ -296,6 +296,7 @@ def main():
         else:#elif command[0] == "BYE":
             print("Matches played:", x, file=sys.stderr)
             return
+
 if __name__ == '__main__':
     try:
         main()

@@ -1,29 +1,38 @@
 import time
 import sys
-from mcts import Node
+from mcts import Node, reset_board, number_of_moves
 import chess
 
-MCTS_POLICY_EXPLORE = 10
+MCTS_POLICY_EXPLORE = 5
 
 class MainGame:
     def __init__(self, player):
         self.tree = Node(
-            game=chess.Board(),
             end=False,
             parent=None,
             move=-1,
             player=player
         )
+        reset_board()
+        self.lol = 2
 
     def change_player(self):
-        self.tree.player = 1 - self.tree.player
+        if self.tree.player == chess.WHITE:
+            self.tree.player = chess.BLACK
+        else:
+            self.tree.player = chess.WHITE
 
     def mcts(self):
-        # start_time = time.time()
-        for i in range(MCTS_POLICY_EXPLORE):# + len(self.tree.game.move_stack)**2):
+        start_time = time.time()
+        for i in range(self.lol):#MCTS_POLICY_EXPLORE + number_of_moves()**2//1000):
             self.tree.explore()
-        # end_time = time.time()
-        # elapsed_time = end_time - start_time
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        if elapsed_time > 0.5:
+            if self.lol > 2:
+                self.lol -= 1
+        else:
+            self.lol += 1
         # print("Elapsed time:", elapsed_time, "seconds", file=sys.stderr)
 
     def send_message(self, message):
@@ -44,7 +53,7 @@ class MainGame:
         return self.handle_ugo()
 
 def main():
-    game = MainGame(player=1)
+    game = MainGame(player=chess.BLACK)
     game.send_message("RDY")
     while True:
         command = input().split()
@@ -59,14 +68,13 @@ def main():
 
 
         elif command[0] == "ONEMORE":
-            game = MainGame(player=1)
+            game = MainGame(player=chess.BLACK)
             game.send_message("RDY")
 
         else:
             return
 
 if __name__ == '__main__':
-    main()
     try:
         main()
     except Exception as e:
